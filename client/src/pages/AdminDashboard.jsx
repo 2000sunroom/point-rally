@@ -554,7 +554,15 @@ function HistoryView() {
 
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('stats');
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return ['stats', 'qr', 'prizes', 'users', 'history'].includes(hash) ? hash : 'stats';
+  });
+
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    window.location.hash = tab;
+  };
 
   const tabs = [
     { id: 'stats', label: '統計', icon: '📊' },
@@ -593,7 +601,7 @@ export default function AdminDashboard() {
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => changeTab(tab.id)}
               className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
                 activeTab === tab.id ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
               }`}

@@ -166,7 +166,15 @@ function QRScanner({ onScan, onClose }) {
 
 export default function UserDashboard() {
   const { user, logout, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return ['home', 'prizes', 'history'].includes(hash) ? hash : 'home';
+  });
+
+  const changeTab = (tab) => {
+    setActiveTab(tab);
+    window.location.hash = tab;
+  };
   const [prizes, setPrizes] = useState([]);
   const [history, setHistory] = useState([]);
   const [showScanner, setShowScanner] = useState(false);
@@ -426,7 +434,7 @@ export default function UserDashboard() {
           {tabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => changeTab(tab.id)}
               className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
                 activeTab === tab.id ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
               }`}
