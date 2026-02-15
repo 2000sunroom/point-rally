@@ -16,7 +16,7 @@ function ProtectedRoute({ children }) {
   }
 
   if (!user) {
-    return <Navigate to="/admin/login" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   if (user.role !== 'admin') {
@@ -48,7 +48,7 @@ function AppRoutes() {
     <Routes>
       <Route
         path="/login"
-        element={user && user.role === 'admin' ? <Navigate to="/admin" replace /> : <LoginPage mode="admin" />}
+        element={user && user.role === 'admin' ? <Navigate to="/" replace /> : <LoginPage mode="admin" />}
       />
       <Route
         path="/"
@@ -58,7 +58,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
-      <Route path="*" element={<Navigate to="/admin" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
