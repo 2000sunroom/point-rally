@@ -1,0 +1,21 @@
+{
+  "name": "stamp-rally-app",
+  "version": "1.0.0",
+  "description": "スポーツクラブ向けポイント消費型スタンプラリーWebアプリ",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "node start.js",
+    "start": "node start.js",
+    "build": "cd client && npx vite build"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "sql.js": "^1.11.0",
+    "@libsql/client": "^0.14.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "cors": "^2.8.5",
+    "qrcode": "^1.5.4",
+    "uuid": "^10.0.0"
+  }
+}
