@@ -252,10 +252,28 @@ export default function UserDashboard() {
     }
   };
 
+  const tabIcons = {
+    home: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955a1.126 1.126 0 0 1 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+      </svg>
+    ),
+    prizes: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1 0 9.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1 1 14.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+      </svg>
+    ),
+    history: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+      </svg>
+    ),
+  };
+
   const tabs = [
-    { id: 'home', label: 'ホーム', icon: '🏠' },
-    { id: 'prizes', label: '景品', icon: '🎁' },
-    { id: 'history', label: '履歴', icon: '📋' },
+    { id: 'home', label: 'ホーム' },
+    { id: 'prizes', label: '景品' },
+    { id: 'history', label: '履歴' },
   ];
 
   return (
@@ -429,18 +447,20 @@ export default function UserDashboard() {
       )}
 
       {/* 下部ナビゲーション */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
+      <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200/60">
         <div className="max-w-lg mx-auto flex">
           {tabs.map(tab => (
             <button
               key={tab.id}
               onClick={() => changeTab(tab.id)}
-              className={`flex-1 py-3 flex flex-col items-center gap-1 transition-colors ${
-                activeTab === tab.id ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
+              className={`flex-1 py-2.5 flex flex-col items-center gap-0.5 transition-all ${
+                activeTab === tab.id ? 'text-blue-600' : 'text-gray-400 hover:text-gray-500'
               }`}
             >
-              <span className="text-xl">{tab.icon}</span>
-              <span className="text-xs font-medium">{tab.label}</span>
+              <div className={`p-1 rounded-xl transition-all ${activeTab === tab.id ? 'bg-blue-50' : ''}`}>
+                {tabIcons[tab.id]}
+              </div>
+              <span className={`text-[10px] font-semibold ${activeTab === tab.id ? 'text-blue-600' : ''}`}>{tab.label}</span>
             </button>
           ))}
         </div>
