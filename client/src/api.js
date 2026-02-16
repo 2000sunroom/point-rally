@@ -58,6 +58,18 @@ export const api = {
   deleteQRCode: (id) =>
     request(`/qrcodes/${id}`, { method: 'DELETE' }),
 
+  // パスワード変更
+  changePassword: (current_password, new_password) =>
+    request('/auth/change-password', { method: 'POST', body: JSON.stringify({ current_password, new_password }) }),
+
+  // お問い合わせ
+  sendInquiry: (subject, message) =>
+    request('/inquiries', { method: 'POST', body: JSON.stringify({ subject, message }) }),
+  getInquiries: () => request('/inquiries'),
+  markInquiryRead: (id) =>
+    request(`/inquiries/${id}/read`, { method: 'PATCH' }),
+  getUnreadCount: () => request('/inquiries/unread-count'),
+
   // 管理者
   getUsers: () => request('/admin/users'),
   getAdminHistory: () => request('/admin/history'),

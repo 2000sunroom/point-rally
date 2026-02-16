@@ -552,11 +552,58 @@ function HistoryView() {
   );
 }
 
+function InquiryView() {
+  const [inquiries, setInquiries] = useState([]);
+
+  useEffect(() => {
+    api.getInquiries().then(d => setInquiries(d.inquiries)).catch(console.error);
+  }, []);
+
+  const handleMarkRead = async (id) => {
+    try {
+      await api.markInquiryRead(id);
+      setInquiries(prev => prev.map(iq => iq.id === id ? { ...iq, is_read: 1 } : iq));
+    } catch (err) { console.error(err); }
+  };
+
+  return (
+    <div className="space-y-3">
+      {inquiries.length === 0 ? (
+        <p className="text-gray-400 text-sm text-center py-8">お問い合わせはありません</p>
+      ) : (
+        inquiries.map(iq => (
+          <div key={iq.id} className={`bg-white rounded-xl p-4 shadow-sm ${!iq.is_read ? 'border-l-4 border-blue-500' : ''}`}>
+            <div className="flex justify-between items-start">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  {!iq.is_read && <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>}
+                  <h3 className="font-bold text-gray-800 truncate">{iq.subject}</h3>
+                </div>
+                <p className="text-sm text-gray-600 mt-1.5 whitespace-pre-wrap">{iq.message}</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-xs text-gray-500">{iq.user_name}（@{iq.username}）</span>
+                  <span className="text-xs text-gray-400">{new Date(iq.created_at).toLocaleString('ja-JP')}</span>
+                </div>
+              </div>
+              {!iq.is_read && (
+                <button onClick={() => handleMarkRead(iq.id)}
+                  className="flex-shrink-0 ml-3 px-3 py-1 rounded-lg text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                  既読
+                </button>
+              )}
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState(() => {
     const hash = window.location.hash.replace('#', '');
-    return ['stats', 'qr', 'prizes', 'users', 'history'].includes(hash) ? hash : 'stats';
+    return ['stats', 'qr', 'prizes', 'users', 'history', 'inquiry'].includes(hash) ? hash : 'stats';
   });
 
   const changeTab = (tab) => {
@@ -591,6 +638,11 @@ export default function AdminDashboard() {
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
       </svg>
     ),
+    inquiry: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+      </svg>
+    ),
   };
 
   const tabs = [
@@ -599,6 +651,7 @@ export default function AdminDashboard() {
     { id: 'prizes', label: '景品' },
     { id: 'users', label: 'ユーザー' },
     { id: 'history', label: '履歴' },
+    { id: 'inquiry', label: '問合せ' },
   ];
 
   return (
@@ -622,6 +675,7 @@ export default function AdminDashboard() {
         {activeTab === 'prizes' && <PrizeManagement />}
         {activeTab === 'users' && <UserManagement />}
         {activeTab === 'history' && <HistoryView />}
+        {activeTab === 'inquiry' && <InquiryView />}
       </div>
 
       {/* 下部ナビゲーション */}

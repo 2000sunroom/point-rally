@@ -164,6 +164,182 @@ function QRScanner({ onScan, onClose }) {
   );
 }
 
+// --- サイドメニュー（ハンバーガー） ---
+function SideMenu({ open, onClose, user, onLogout }) {
+  const [view, setView] = useState('menu'); // 'menu' | 'password' | 'inquiry'
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
+  const [iqForm, setIqForm] = useState({ subject: '', message: '' });
+  const [result, setResult] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const reset = () => { setView('menu'); setResult(null); setPwForm({ current: '', next: '', confirm: '' }); setIqForm({ subject: '', message: '' }); };
+  const handleClose = () => { reset(); onClose(); };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (pwForm.next !== pwForm.confirm) { setResult({ ok: false, text: '新しいパスワードが一致しません' }); return; }
+    setBusy(true); setResult(null);
+    try {
+      const data = await api.changePassword(pwForm.current, pwForm.next);
+      setResult({ ok: true, text: data.message });
+      setPwForm({ current: '', next: '', confirm: '' });
+    } catch (err) { setResult({ ok: false, text: err.message }); }
+    finally { setBusy(false); }
+  };
+
+  const handleSendInquiry = async (e) => {
+    e.preventDefault();
+    setBusy(true); setResult(null);
+    try {
+      const data = await api.sendInquiry(iqForm.subject, iqForm.message);
+      setResult({ ok: true, text: data.message });
+      setIqForm({ subject: '', message: '' });
+    } catch (err) { setResult({ ok: false, text: err.message }); }
+    finally { setBusy(false); }
+  };
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      {/* オーバーレイ */}
+      <div className="absolute inset-0 bg-black/40" onClick={handleClose} />
+      {/* ドロワー */}
+      <div className="relative w-80 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col animate-[slideIn_0.2s_ease-out]">
+        {/* ヘッダー */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-5 text-white">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-xl font-bold mb-3">
+                {user?.display_name?.[0] || 'U'}
+              </div>
+              <p className="font-bold text-lg">{user?.display_name}</p>
+              <p className="text-blue-200 text-sm">@{user?.username}</p>
+            </div>
+            <button onClick={handleClose} className="text-white/70 hover:text-white p-1">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="mt-3 bg-white/10 rounded-xl px-4 py-2">
+            <span className="text-blue-200 text-xs">保有ポイント</span>
+            <span className="text-white font-bold text-xl ml-2">{user?.points || 0}<span className="text-sm ml-0.5">pt</span></span>
+          </div>
+        </div>
+
+        {/* コンテンツ */}
+        <div className="flex-1 overflow-y-auto p-4">
+          {result && (
+            <div className={`mb-4 px-4 py-3 rounded-xl text-sm ${result.ok ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'}`}>
+              {result.text}
+            </div>
+          )}
+
+          {view === 'menu' && (
+            <div className="space-y-1">
+              <p className="text-xs text-gray-400 font-semibold px-3 pt-2 pb-1">アカウント</p>
+              {/* ユーザー情報 */}
+              <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                <div className="flex justify-between text-sm"><span className="text-gray-500">表示名</span><span className="font-medium text-gray-800">{user?.display_name}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-gray-500">ユーザー名</span><span className="font-medium text-gray-800">@{user?.username}</span></div>
+                <div className="flex justify-between text-sm"><span className="text-gray-500">登録日</span><span className="font-medium text-gray-800">{user?.created_at ? new Date(user.created_at).toLocaleDateString('ja-JP') : '-'}</span></div>
+              </div>
+
+              <p className="text-xs text-gray-400 font-semibold px-3 pt-4 pb-1">設定</p>
+              <button onClick={() => { setResult(null); setView('password'); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors text-left">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+                <span className="text-sm font-medium text-gray-700">パスワード変更</span>
+                <svg className="w-4 h-4 text-gray-300 ml-auto" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+              </button>
+              <button onClick={() => { setResult(null); setView('inquiry'); }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors text-left">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                <span className="text-sm font-medium text-gray-700">お問い合わせ</span>
+                <svg className="w-4 h-4 text-gray-300 ml-auto" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>
+              </button>
+
+              <div className="pt-4">
+                <button onClick={onLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 transition-colors text-left">
+                  <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                  </svg>
+                  <span className="text-sm font-medium text-red-600">ログアウト</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {view === 'password' && (
+            <div>
+              <button onClick={() => { setView('menu'); setResult(null); }} className="text-blue-600 text-sm font-medium mb-4 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                戻る
+              </button>
+              <h3 className="font-bold text-gray-800 mb-4">パスワード変更</h3>
+              <form onSubmit={handleChangePassword} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">現在のパスワード</label>
+                  <input type="password" value={pwForm.current} onChange={e => setPwForm({ ...pwForm, current: e.target.value })} required
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">新しいパスワード</label>
+                  <input type="password" value={pwForm.next} onChange={e => setPwForm({ ...pwForm, next: e.target.value })} required minLength={4}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">新しいパスワード（確認）</label>
+                  <input type="password" value={pwForm.confirm} onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })} required minLength={4}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                <button type="submit" disabled={busy}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 transition-colors">
+                  {busy ? '変更中...' : '変更する'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {view === 'inquiry' && (
+            <div>
+              <button onClick={() => { setView('menu'); setResult(null); }} className="text-blue-600 text-sm font-medium mb-4 flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" /></svg>
+                戻る
+              </button>
+              <h3 className="font-bold text-gray-800 mb-4">お問い合わせ</h3>
+              <form onSubmit={handleSendInquiry} className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">件名</label>
+                  <input type="text" value={iqForm.subject} onChange={e => setIqForm({ ...iqForm, subject: e.target.value })} required
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="例: ポイントについて" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">内容</label>
+                  <textarea value={iqForm.message} onChange={e => setIqForm({ ...iqForm, message: e.target.value })} required rows={5}
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+                    placeholder="お問い合わせ内容を入力してください" />
+                </div>
+                <button type="submit" disabled={busy}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 transition-colors">
+                  {busy ? '送信中...' : '送信する'}
+                </button>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function UserDashboard() {
   const { user, logout, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState(() => {
@@ -178,6 +354,7 @@ export default function UserDashboard() {
   const [prizes, setPrizes] = useState([]);
   const [history, setHistory] = useState([]);
   const [showScanner, setShowScanner] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -285,8 +462,10 @@ export default function UserDashboard() {
             <h1 className="text-lg font-bold">スタンプラリー</h1>
             <p className="text-blue-200 text-sm">{user?.display_name}さん</p>
           </div>
-          <button onClick={logout} className="text-blue-200 hover:text-white text-sm px-3 py-1.5 rounded-lg hover:bg-white/10 transition-colors">
-            ログアウト
+          <button onClick={() => setShowMenu(true)} className="p-2 rounded-xl hover:bg-white/10 transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
           </button>
         </div>
       </header>
@@ -445,6 +624,9 @@ export default function UserDashboard() {
           onClose={() => setShowScanner(false)}
         />
       )}
+
+      {/* サイドメニュー */}
+      <SideMenu open={showMenu} onClose={() => setShowMenu(false)} user={user} onLogout={logout} />
 
       {/* 下部ナビゲーション */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200/60">

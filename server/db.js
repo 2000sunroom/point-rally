@@ -61,6 +61,15 @@ const TABLES_SQL = [
     scanned_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (qr_code_id) REFERENCES qr_codes(id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS inquiries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    subject TEXT NOT NULL,
+    message TEXT NOT NULL,
+    is_read INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
   )`
 ];
 

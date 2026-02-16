@@ -72,4 +72,28 @@ router.get('/me', authenticate, async (req, res) => {
   }
 });
 
+// パスワード変更
+router.post('/change-password', authenticate, async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: '現在のパスワードと新しいパスワードを入力してください' });
+    }
+    if (new_password.length < 4) {
+      return res.status(400).json({ error: '新しいパスワードは4文字以上にしてください' });
+    }
+    const user = await getOne('SELECT * FROM users WHERE id = ?', [req.user.id]);
+    const valid = await bcrypt.compare(current_password, user.password);
+    if (!valid) {
+      return res.status(401).json({ error: '現在のパスワードが正しくありません' });
+    }
+    const hashed = await bcrypt.hash(new_password, 10);
+    await runQuery('UPDATE users SET password = ? WHERE id = ?', [hashed, req.user.id]);
+    res.json({ message: 'パスワードを変更しました' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'サーバーエラーが発生しました' });
+  }
+});
+
 module.exports = router;

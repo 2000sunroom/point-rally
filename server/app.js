@@ -44,5 +44,6 @@ app.use('/api/qrcodes', require('./routes/qrcodes'));
 app.use('/api/points', require('./routes/points'));
 app.use('/api/prizes', require('./routes/prizes'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/inquiries', require('./routes/inquiries'));
 
 module.exports = app;
